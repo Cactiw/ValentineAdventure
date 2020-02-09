@@ -3,11 +3,20 @@
 from work_materials.globals import Session
 
 from libs.Player import Player
+from libs.Player import Player
 
 from bin.buttons import get_class_select_buttons
 
 
 def start(bot, update):
+    mes = update.message
+    session = Session()
+    cur_player = session.query(Player).get(mes.from_user.id)
+    if cur_player is None:
+        cur_player = Player(id=mes.from_user.id, username=mes.from_user.id)
+        session.add(cur_player)
+        session.commit()
+    session.close()
     bot.send_message(chat_id=update.message.chat_id,
                      text="Привет! Пришли мне id своей половинки!\n"
                           "Твой id: <code>{}</code>".format(update.message.from_user.id), parse_mode='HTML')
@@ -48,4 +57,11 @@ def id_entered(bot, update):
 
 
 def class_selected(bot, update):
-    pass
+    mes = update.message
+    session = Session()
+    player: Player = session.query(Player).get(mes.from_user.id)
+    player.set_game_class(mes.text)
+    player.update(session)
+    player.set_quest(0, session=session)
+
+
