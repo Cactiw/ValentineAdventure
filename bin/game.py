@@ -3,9 +3,15 @@
 from work_materials.globals import Session
 
 from libs.Player import Player
-from libs.Player import Player
+from libs.Quest import Quest
 
 from bin.buttons import get_class_select_buttons
+
+
+def get_session_and_player(update):
+    session = Session()
+    player = session.query(Player).get(update.message.from_user.id)
+    return [session, player]
 
 
 def start(bot, update):
@@ -65,3 +71,13 @@ def class_selected(bot, update):
     player.set_quest(0, session=session)
 
 
+def quest_variant_chosen(bot, update):
+    mes = update.message
+    session, player = get_session_and_player(update)
+    player.selected = True
+    if player.check_has_pair_selected():
+        # Оба выбрали
+        pass
+    else:
+        # Пара не выбрала
+        bot.send_message(chat_id=player.id, text="Принято. Ожидай решение партнёра")

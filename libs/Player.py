@@ -68,9 +68,15 @@ class Player(Base):
         self.set_quest(quest_id, session)
         self.pair.set_quest(quest_id, session)
 
+    def set_variant(self, variant, session: Session):
+        self.selected = True
+        self.selected_variant = variant
+        self.update(session)
 
+    def finish_quest(self, selected):
+        pass
 
-
+    #
 
     def add_item(self, item_id, session):
         self.item_ids.append(item_id)
