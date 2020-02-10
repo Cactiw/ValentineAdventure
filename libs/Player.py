@@ -4,8 +4,17 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship, backref, Session
 
 from libs.Quest import Quest
+from libs.Item import Item
 
 from work_materials.globals import Base, dispatcher, Session as NewSession
+
+
+inventory = Table('inventory', Base.metadata,
+    Column('player_id', INT, ForeignKey('players.id')),
+    Column('item_id', INT)
+)
+
+
 
 
 class Player(Base):
@@ -19,12 +28,15 @@ class Player(Base):
 
     quest_id = Column(INT)
     selected = Column(BOOLEAN, default=False)
+    selected_variant = Column(VARCHAR)
     progress = Column(JSONB)
     status = Column(VARCHAR)
     battle_status = Column(VARCHAR)
 
     hp = Column(INT)
     max_hp = Column(INT)
+
+    item_ids = relationship(INT, secondary=inventory)
 
     #
 
@@ -60,8 +72,9 @@ class Player(Base):
 
 
 
-
-
+    def add_item(self, item_id, session):
+        self.item_ids.append(item_id)
+        self.update(session)
 
 
 
