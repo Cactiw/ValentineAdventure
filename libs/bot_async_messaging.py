@@ -251,6 +251,7 @@ class AsyncBot(Bot):
             return UNAUTHORIZED_ERROR_CODE
         except BadRequest:
             logging.error(traceback.format_exc())
+            logging.error(kwargs)
             return BADREQUEST_ERROR_CODE
         except (TimedOut, NetworkError):
             logging.error(traceback.format_exc())
