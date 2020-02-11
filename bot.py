@@ -1,8 +1,11 @@
-from telegram.ext import MessageHandler, CommandHandler
+from telegram.ext import MessageHandler, CommandHandler, Filters
 
 from work_materials.globals import Base, engine, dispatcher, updater
 
-from bin.game import start
+from bin.game import start, text_entered
+
+from libs.Quest import Quest
+from libs.Item import Item
 
 import logging
 
@@ -10,11 +13,15 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 
 dispatcher.add_handler(CommandHandler('start', start))
+dispatcher.add_handler(MessageHandler(Filters.text, text_entered))
 
 #
 
 Base.metadata.create_all(engine)
+Quest.load_quests()
+Item.load_items()
 
+logging.info("Starting pooling")
 updater.start_polling(clean=False)
 updater.idle()
 

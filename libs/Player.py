@@ -29,14 +29,15 @@ class Player(Base):
     quest_id = Column(INT)
     selected = Column(BOOLEAN, default=False)
     selected_variant = Column(VARCHAR)
-    progress = Column(JSONB)
+    progress = Column(JSONB, default={})
     status = Column(VARCHAR)
     battle_status = Column(VARCHAR)
 
     hp = Column(INT)
     max_hp = Column(INT)
 
-    item_ids = relationship(INT, secondary=inventory)
+    # item_ids = relationship(INT, secondary=inventory)
+    item_ids = []  # TODO fix inventory
 
     #
 
@@ -53,15 +54,48 @@ class Player(Base):
             raise RuntimeError
         return self.pair.selected
 
+    def get_active_quest(self) -> Quest:
+        return Quest.get_quest(self.quest_id)
+
+    def verify_quest_answer(self, answer):
+        return self.get_active_quest().verify_quest_answer(answer)
+
     def set_quest(self, quest_id, session: Session):
         self.quest_id = quest_id
         self.selected = False
         self.status = "quest"
+        self.progress.clear()
 
-        quest = Quest.get_quest(quest_id)
+        quest = self.get_active_quest()
         quest.start(self)
-        dispatcher.bot.send_message(chat_id=self.id, text=quest.get_enter_text(), parse_mode='HTML')
+        dispatcher.bot.send_message(chat_id=self.id, text=quest.get_enter_text(), parse_mode='HTML',
+                                    reply_markup=quest.get_buttons())
         self.update(session)
+
+    def chose_variant(self, answer: str, session: Session):
+        self.selected = True
+        self.update(session)
+        quest = self.get_active_quest()
+        current: {str: {}} = quest.answers.get(answer)
+        if self.check_has_pair_selected() or not current.get("wait_companion"):
+            # Оба выбрали, или не нужно ждать второго - прогресс
+            path = current.get("path")
+            if path is not None:
+                # Действия на этой локации
+                progress = self.progress.get(path, 0)
+                self.progress.update({path: progress + current.get("add_progress", 1)})
+                dispatcher.bot.send_message(chat_id=self.id, text=current.get("first_text"), parse_mode='HTML',
+                                            reply_markup=quest.get_buttons(progress=self.progress))
+                dispatcher.bot.send_message(chat_id=self.pair_id, text=current.get("second_text"), parse_mode='HTML',
+                                            reply_markup=quest.get_buttons(progress=self.pair.progress))
+                print(self.pair.progress)
+                self.update(session)
+            else:
+                self.progress_both_to_quest(current.get("new_id"), session)
+            pass
+        else:
+            # Пара не выбрала
+            dispatcher.bot.send_message(chat_id=self.id, text="Принято. Ожидай решение партнёра")
 
 
     def progress_both_to_quest(self, quest_id, session: Session):

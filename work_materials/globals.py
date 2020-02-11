@@ -21,3 +21,6 @@ dispatcher = updater.dispatcher
 job = updater.job_queue
 
 bot.dispatcher = dispatcher
+
+
+game_classes = ["⚗️Алхимик", "⚒Кузнец", "📦Добытчик", "🏹Лучник", "⚔Рыцарь", "🛡Защитник"]

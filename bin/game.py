@@ -1,6 +1,6 @@
 
 
-from work_materials.globals import Session
+from work_materials.globals import Session, game_classes
 
 from libs.Player import Player
 from libs.Quest import Quest
@@ -19,13 +19,32 @@ def start(bot, update):
     session = Session()
     cur_player = session.query(Player).get(mes.from_user.id)
     if cur_player is None:
-        cur_player = Player(id=mes.from_user.id, username=mes.from_user.id)
-        session.add(cur_player)
-        session.commit()
+        cur_player = Player(id=mes.from_user.id, username=mes.from_user.username, status="selecting_game_class")
+
+    else:
+        cur_player.status = "selecting_game_class"  # TODO поставить заглушку
+    session.add(cur_player)
+    session.commit()
+    bot.send_message(cur_player.id, text="Привет! Выбери класс, за который будешь играть!",
+                     reply_markup=get_class_select_buttons())
     session.close()
+
+
+
+def class_selected(bot, update):
+    mes = update.message
+    if mes.text not in game_classes:
+        bot.send_message(chat_id=mes.chat_id, text="Неверный синтаксис. Выберите один из перечисленных классов.")
+        return
+    session = Session()
+    player: Player = session.query(Player).get(mes.from_user.id)
+    player.set_game_class(mes.text)
+    player.status = "awaiting_pair_id"
+    player.update(session)
     bot.send_message(chat_id=update.message.chat_id,
-                     text="Привет! Пришли мне id своей половинки!\n"
-                          "Твой id: <code>{}</code>".format(update.message.from_user.id), parse_mode='HTML')
+                     text="Хорошо, <b>{}</b>! Пришли мне id своей половинки!\n"
+                          "Твой id: <code>{}</code>".format(player.game_class, update.message.from_user.id),
+                     parse_mode='HTML')
 
 
 def id_entered(bot, update):
@@ -36,7 +55,7 @@ def id_entered(bot, update):
         bot.send_message(chat_id=mes.chat_id, text="Неверный синтаксис. Введите число.")
         return
     session = Session()
-    cur_player = session.query(Player).get(mes.from_user.id)
+    cur_player: Player = session.query(Player).get(mes.from_user.id)
     player: Player = session.query(Player).get(player_id)
     if player is None:
         bot.send_message(chat_id=mes.chat_id, text="Этот человек ещё не зарегистрирован.")
@@ -47,37 +66,52 @@ def id_entered(bot, update):
     if player.pair_id is not None and player.pair_id != cur_player.id:
         bot.send_message(chat_id=mes.chat_id, text="У другого игрока уже выбрана пара, и это не вы!")
         return
-    cur_player.pair_id = player.pair_id
-    if player.pair_id is not None and player.pair_id == cur_player.pair_id:
-        buttons = get_class_select_buttons()
-        bot.send_message(chat_id=mes.chat_id, text="Поздравляем! Ваш выбор совпал!\nВыберите класс",
-                         reply_markup=buttons)
-        bot.send_message(chat_id=player.id, text="Поздравляем! Ваш выбор совпал!\nВыберите класс",
-                         reply_markup=buttons)
+    cur_player.pair_id = player.id
+    if player.pair_id is not None and player.pair_id == cur_player.id:
+        bot.send_message(chat_id=mes.chat_id, text="Поздравляем! Ваш выбор совпал!")
+        bot.send_message(chat_id=player.id, text="Поздравляем! Ваш выбор совпал!")
+        player.progress_both_to_quest(0, session)
         # Начало игры
     else:
         bot.send_message(chat_id=mes.chat_id, text="Хорошо. Теперь Ваша половинка должна также выбрать вас.")
-        bot.send_message(chat_id=mes.chat_id, text="@{} хочет сыграть с вами! Для согласия выберите его:\n"
-                                                   "id: <code>{}<code>".format(cur_player.username,
+        bot.send_message(chat_id=player.id, text="@{} хочет сыграть с вами! Для согласия выберите его:\n"
+                                                   "id: <code>{}</code>".format(cur_player.username,
                                                                                cur_player.id), parse_mode='HTML')
-
-
-def class_selected(bot, update):
-    mes = update.message
-    session = Session()
-    player: Player = session.query(Player).get(mes.from_user.id)
-    player.set_game_class(mes.text)
     player.update(session)
-    player.set_quest(0, session=session)
+    cur_player.update(session)
+    session.close()
 
 
 def quest_variant_chosen(bot, update):
     mes = update.message
     session, player = get_session_and_player(update)
-    player.selected = True
-    if player.check_has_pair_selected():
-        # Оба выбрали
-        pass
+    if not player.verify_quest_answer(mes.text):
+        bot.send_message(chat_id=player.id, text="Ответ не распознан. Пожалуйста, используйте кнопки")
+        return
+    player.chose_variant(mes.text, session)
+
+
+
+def text_entered(bot, update):
+    """
+    Функция, которая определяет, какой callback запустить на основе статуса игрока
+    :param bot:
+    :param update:
+    :return:
+    """
+    mes = update.message
+    session, player = get_session_and_player(update)
+    if player is None:
+        bot.send_message(chat_id=mes.chat_id, text="Вы не зарегистрированы. Нажмите /start")
+        return
+    if player.status == "selecting_game_class":
+        return class_selected(bot, update)
+    elif player.status == "awaiting_pair_id":
+        return id_entered(bot, update)
+    elif player.status == "quest":
+        quest_variant_chosen(bot, update)
+
+
     else:
-        # Пара не выбрала
-        bot.send_message(chat_id=player.id, text="Принято. Ожидай решение партнёра")
+        pass
+        # unknown_response(bot, update)
