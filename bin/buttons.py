@@ -19,5 +19,5 @@ class_select_buttons = [
 
 
 def get_class_select_buttons():
-    return ReplyKeyboardMarkup(class_select_buttons)
+    return ReplyKeyboardMarkup(class_select_buttons, resize_keyboard=True)
 
