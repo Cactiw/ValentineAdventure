@@ -24,6 +24,7 @@ class Item:
         logging.info("Loading items...")
 
         for item_id, data in list(items.items()):
+            data.update({"item_id": item_id})
             Item.items.update({item_id: Item(**data)})
 
         logging.info("Items loaded.")

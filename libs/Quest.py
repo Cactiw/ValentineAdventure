@@ -22,7 +22,7 @@ class Quest:
 
     @staticmethod
     def get_quest(quest_id: int) -> "Quest":
-        return quests.get(quest_id)
+        return Quest.quests.get(quest_id)
 
     @staticmethod
     def load_quests():
@@ -33,6 +33,7 @@ class Quest:
         logging.info("Loading quests...")
 
         for quest_id, data in list(quests.items()):
+            data.update({"quest_id": quest_id})
             Quest.quests.update({quest_id: Quest(**data)})
 
         logging.info("Quests loaded.")
