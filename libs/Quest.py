@@ -3,7 +3,7 @@ from resources.quests import quests
 
 from bin.buttons import build_buttons_menu
 
-from telegram import KeyboardButton, ReplyKeyboardMarkup
+from telegram import ReplyKeyboardMarkup
 
 import logging
 

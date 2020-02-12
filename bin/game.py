@@ -3,7 +3,6 @@
 from work_materials.globals import Session, game_classes
 
 from libs.Player import Player
-from libs.Quest import Quest
 
 from bin.buttons import get_class_select_buttons
 

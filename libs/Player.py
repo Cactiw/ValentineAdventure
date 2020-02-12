@@ -1,12 +1,11 @@
-from sqlalchemy import Table, Column, ForeignKey, INT, VARCHAR, DATE, ARRAY, TEXT, BOOLEAN, BIGINT, FLOAT, func, and_, \
-    or_
+from sqlalchemy import Table, Column, ForeignKey, INT, VARCHAR, BOOLEAN
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship, backref, Session
 
 from libs.Quest import Quest
 from libs.Item import Item
 
-from work_materials.globals import Base, dispatcher, Session as NewSession
+from work_materials.globals import Base, dispatcher
 
 
 inventory = Table('inventory', Base.metadata,
