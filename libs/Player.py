@@ -3,17 +3,8 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship, backref, Session
 
 from libs.Quest import Quest
-from libs.Item import Item
 
 from work_materials.globals import Base, dispatcher
-
-
-inventory = Table('inventory', Base.metadata,
-    Column('player_id', INT, ForeignKey('players.id')),
-    Column('item_id', INT)
-)
-
-
 
 
 class Player(Base):
@@ -34,11 +25,6 @@ class Player(Base):
 
     hp = Column(INT)
     max_hp = Column(INT)
-
-    # item_ids = relationship(INT, secondary=inventory)
-    item_ids = []  # TODO fix inventory
-
-    #
 
     def set_game_class(self, new_class):
         self.game_class = new_class
