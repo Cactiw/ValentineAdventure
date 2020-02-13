@@ -120,4 +120,9 @@ def text_entered(bot, update):
 
 def inv(bot, update):
     player_id = update.message.from_user.id
-    bot.send_message(chat_id=update.message.chat_id, text=ItemRel.get_inventory(player_id, as_string=True))
+    inv = ItemRel.get_inventory(player_id)
+    res = f"Твой инвентарь:\n" if len(inv) > 0 else "Твой инвентарь пуст!"
+    for item, quantity in inv:
+        res += str(item) + f" ({quantity})\n"
+    return res
+    bot.send_message(chat_id=update.message.chat_id, text=res)

@@ -5,7 +5,6 @@ from work_materials.globals import Base, engine, dispatcher, updater
 from bin.game import start, text_entered, inv
 
 from libs.Quest import Quest
-from libs.Item import Item, ItemRel
 
 import logging
 

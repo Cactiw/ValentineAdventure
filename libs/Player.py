@@ -3,6 +3,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship, backref, Session
 
 from libs.Quest import Quest
+from libs.Item import ItemRel
 
 from work_materials.globals import Base, dispatcher
 
@@ -34,7 +35,6 @@ class Player(Base):
     def update(self, session: Session):
         session.add(self)
         session.commit()
-
 
     def check_has_pair_selected(self):
         if self.pair is None:
@@ -96,6 +96,9 @@ class Player(Base):
 
     def finish_quest(self, selected):
         pass
+
+    def get_inventory(self):
+        return ItemRel.get_inventory(self)
 
     #
 

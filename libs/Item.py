@@ -1,6 +1,6 @@
 from work_materials.globals import Base, Session
 from sqlalchemy import Column, INT, ForeignKey, PrimaryKeyConstraint, VARCHAR
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship
 
 from libs.Player import Player
 
@@ -19,6 +19,12 @@ class ItemRel(Base):
 
     @staticmethod
     def get_rel(player, item):
+        """
+        Возвращает отношение по id игрока и предмета либо по объектам классов (определяет как работать сам
+        :param player: id игрока, либо экземпляр класса Player
+        :param item:  id предмета, либо экземпляр класса Item
+        :return: Класс ItemRel с полями item, player и quantity (item и player - экземпляры классов)
+        """
         if isinstance(player, int):
             player_id = player
         elif isinstance(player, Player):
@@ -36,7 +42,14 @@ class ItemRel(Base):
         session = Session()
         return session.query(ItemRel).filter_by(item_id=item_id, player_id=player_id).first()
 
+
     def reduce_quantity(self, n=1, use=False):
+        """
+        Уменьшает количество предметов в записи на n и, если нужно вызывает функцию use() для каждого предмета
+        :param n: Количество предметов, которое нужно изъять
+        :param use: Нужно ли использовать предмет
+        :return: None
+        """
         if self.quantity == n:
             if use:
                 self.item.use(times=n)
@@ -52,10 +65,21 @@ class ItemRel(Base):
 
 
     def increase_quantity(self, n=1):
+        """
+        Добавляет n предметов
+        :param n: Количество предметов
+        :return: None
+        """
         self.quantity += n
 
+
     @staticmethod
-    def get_inventory(player, as_string: bool=False):
+    def get_inventory(player):
+        """
+        Возвращает инвентарь игрока
+        :param player: id игрока либо экземпляр класса Player чей инвентарь нужно получить
+        :return: список из tuple (item, quantity)
+        """
         if isinstance(player, int):
             id = player
         elif isinstance(player, Player):
@@ -66,13 +90,10 @@ class ItemRel(Base):
         session = Session()
         query = session.query(ItemRel).filter_by(player_id=id).all()
         inv = [(i.item, i.quantity) for i in query]
-        if not as_string:
-            return inv
-        else:
-            res = f"Твой инвентарь:\n" if len(inv) > 0 else "Твой инвентарь пуст!"
-            for item, quantity in inv:
-                res += str(item) + f" ({quantity})\n"
-            return res
+        return inv
+
+
+
 
 
 class Item(Base):
@@ -92,7 +113,22 @@ class Item(Base):
 
     @staticmethod
     def get(id: int):
+        """
+        Получить предмет по id
+        :param id: id предмета
+        :return: экземпляр класса Item
+        """
         session = Session()
         return session.query(Item).get(id)
 
+
+    @staticmethod
+    def get_by_name(name: str):
+        """
+        Получить предмет по имени
+        :param name: Имя предмета
+        :return: экземпляр класса Item
+        """
+        session = Session()
+        return session.query(Item).filter_by(name=name).first()
 
