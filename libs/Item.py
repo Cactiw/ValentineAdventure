@@ -17,6 +17,25 @@ class ItemRel(Base):
         UniqueConstraint('item_id', 'player_id', name='unique_record')
     )
 
+    @staticmethod
+    def get_rel(player, item):
+        if isinstance(player, int):
+            player_id = player
+        elif isinstance(player, Player):
+            player_id = player.id
+        else:
+            raise TypeError('player is not int nor class Player')
+
+        if isinstance(player, int):
+            item_id = player
+        elif isinstance(item, Item):
+            item_id = player.id
+        else:
+            raise TypeError('item is not int nor class Item')
+
+        session = Session()
+        return session.query(ItemRel).filter_by(item_id=item_id, player_id=player_id).first()
+
     def reduce_quantity(self, n=1):
         if self.quantity == n:
             # TODO Удалить из таблицы
@@ -26,10 +45,12 @@ class ItemRel(Base):
         else:
             self.quantity -= n
 
+
     def increase_quantity(self, n=1):
         self.quantity += n
 
-    def get_inventory(self, player):
+    @staticmethod
+    def get_inventory(player):
         if isinstance(player, int):
             id = player
         elif isinstance(player, Player):
@@ -37,8 +58,8 @@ class ItemRel(Base):
         else:
             raise TypeError('player is not int nor class Player')
 
-        return Session().query(ItemRel.item_id, ItemRel.quantity).filter_by(player_id=id)
-
+        session = Session()
+        return session.query(ItemRel.item_id, ItemRel.quantity).filter_by(player_id=id)
 
 
 
