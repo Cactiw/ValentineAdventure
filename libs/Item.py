@@ -64,7 +64,8 @@ class ItemRel(Base):
             raise TypeError('player is not int nor class Player')
 
         session = Session()
-        inv = session.query(ItemRel.item, ItemRel.quantity).filter_by(player_id=id)
+        query = session.query(ItemRel).filter_by(player_id=id).all()
+        inv = [(i.item, i.quantity) for i in query]
         if not as_string:
             return inv
         else:
@@ -81,7 +82,7 @@ class Item(Base):
     id = Column(INT, nullable=False, autoincrement=True, primary_key=True)
     name = Column(VARCHAR, nullable=False, unique=True)
 
-    item = relationship('ItemRel', backref=backref('item'))
+    item_rel = relationship('ItemRel', backref='item')
 
     def __repr__(self):
         return f"- {self.name}"
