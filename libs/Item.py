@@ -68,7 +68,7 @@ class ItemRel(Base):
         if not as_string:
             return inv
         else:
-            res = f"Твой инвентарь:\n"
+            res = f"Твой инвентарь:\n" if len(inv) > 0 else "Твой инвентарь пуст!"
             for item, quantity in inv:
                 res += str(item) + f" ({quantity})\n"
             return res
