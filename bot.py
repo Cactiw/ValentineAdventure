@@ -5,7 +5,7 @@ from work_materials.globals import Base, engine, dispatcher, updater
 from bin.game import start, text_entered
 
 from libs.Quest import Quest
-from libs.Item import Item
+from libs.Item import Item, ItemRel
 
 import logging
 
@@ -19,7 +19,6 @@ dispatcher.add_handler(MessageHandler(Filters.text, text_entered))
 
 Base.metadata.create_all(engine)
 Quest.load_quests()
-Item.load_items()
 
 logging.info("Starting pooling")
 updater.start_polling(clean=False)

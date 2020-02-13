@@ -1,5 +1,5 @@
 from work_materials.globals import Base, Session
-from sqlalchemy import Column, INT, ForeignKey, UniqueConstraint, VARCHAR
+from sqlalchemy import Column, INT, ForeignKey, PrimaryKeyConstraint, VARCHAR
 from sqlalchemy.orm import relationship, backref
 
 from libs.Player import Player
@@ -14,7 +14,7 @@ class ItemRel(Base):
     quantity = Column(INT, default=1)
 
     __table_args__ = (
-        UniqueConstraint('item_id', 'player_id', name='unique_record')
+        PrimaryKeyConstraint('item_id', 'player_id', name='unique_record'),
     )
 
     @staticmethod
@@ -68,7 +68,7 @@ class Item(Base):
     __tablename__ = "items"
 
     id = Column(INT, nullable=False, autoincrement=True, primary_key=True)
-    name = Column(VARCHAR, nullable=False)
+    name = Column(VARCHAR, nullable=False, unique=True)
 
     item = relationship('ItemRel', backref=backref('item'))
 
