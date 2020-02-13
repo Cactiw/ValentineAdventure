@@ -1,7 +1,17 @@
-
-from resources.items import items
+from work_materials.globals import Base
+from sqlalchemy import Table, Column, ForeignKey, INT, VARCHAR, BOOLEAN
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import relationship, backref, Session
 
 import logging
+
+
+class ItemRel(Base):
+    item_id = Column(INT, nullable=False)
+    player_id = Column(INT, nullable=False)
+    quantity = Column(INT, default=1)
+
+
 
 
 class Item:
