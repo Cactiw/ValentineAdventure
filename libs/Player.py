@@ -1,6 +1,7 @@
 from sqlalchemy import Column, ForeignKey, INT, VARCHAR, BOOLEAN
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship, backref, Session
+from sqlalchemy.orm.attributes import flag_modified
 
 from libs.Quest import Quest
 from libs.ItemRel import ItemRel
@@ -71,14 +72,12 @@ class Player(Base):
             if path is not None:
                 # Действия на этой локации
                 progress = self.progress.get(path, 0)
-                print(progress)
-                self.progress.update({path: progress + current.get("add_progress", 1)})
-                print(progress)
+                self.update_progress(path, progress + current.get("add_progress", 1))
                 dispatcher.bot.send_message(chat_id=self.id, text=current.get("first_text"), parse_mode='HTML',
                                             reply_markup=quest.get_buttons(progress=self.progress))
                 dispatcher.bot.send_message(chat_id=self.pair_id, text=current.get("second_text"), parse_mode='HTML',
                                             reply_markup=quest.get_buttons(progress=self.pair.progress))
-                print(self.pair.progress)
+                # print(self.pair.progress)
                 self.update(session)
             else:
                 self.progress_both_to_quest(current.get("new_id"), session)
@@ -103,6 +102,10 @@ class Player(Base):
 
     def finish_quest(self, selected):
         pass
+
+    def update_progress(self, key, value):
+        self.progress.update({key: value})
+        flag_modified(self, "progress")
 
     #
 
