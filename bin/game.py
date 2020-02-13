@@ -43,8 +43,8 @@ def class_selected(bot, update):
     player.update(session)
     bot.send_message(chat_id=update.message.chat_id,
                      text="Хорошо, <b>{}</b>! Пришли мне id своей половинки!\n"
-                          "Твой id: <code>{}</code>".format(player.game_class, update.message.from_user.id,
-                                                            reply_markup=ReplyKeyboardRemove()),
+                          "Твой id: <code>{}</code>".format(player.game_class, update.message.from_user.id),
+                     reply_markup=ReplyKeyboardRemove(),
                      parse_mode='HTML')
 
 
