@@ -42,7 +42,9 @@ class ItemRel(Base):
             raise TypeError('item is not int nor class Item')
 
         session = Session()
-        return session.query(ItemRel).filter_by(item_id=item_id, player_id=player_id).first()
+        res = session.query(ItemRel).filter_by(item_id=item_id, player_id=player_id).first()
+        session.close()
+        return res
 
 
     def reduce_quantity(self, n=1, use=False):
@@ -58,6 +60,7 @@ class ItemRel(Base):
             session = Session()
             session.delete(self)
             session.commit()
+            session.close()
         elif self.quantity < n:
             raise ValueError('Not enough items!')
         else:
@@ -93,4 +96,5 @@ class ItemRel(Base):
         session = Session()
         query = session.query(ItemRel).filter_by(player_id=id).all()
         inv = [(i.item, i.quantity) for i in query]
+        session.close()
         return inv

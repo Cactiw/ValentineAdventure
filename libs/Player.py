@@ -27,7 +27,7 @@ class Player(Base):
     hp = Column(INT)
     max_hp = Column(INT)
 
-    player = relationship('ItemRel', backref='player')
+    player = relationship('ItemRel', backref='player', lazy='subquery')
 
     def set_game_class(self, new_class):
         self.game_class = new_class

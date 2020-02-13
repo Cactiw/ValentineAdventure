@@ -10,7 +10,7 @@ class Item(Base):
     id = Column(INT, nullable=False, autoincrement=True, primary_key=True)
     name = Column(VARCHAR, nullable=False, unique=True)
 
-    item_rel = relationship('ItemRel', backref='item')
+    item_rel = relationship('ItemRel', backref='item', lazy='subquery')
 
     def __repr__(self):
         return f"- {self.name}"
@@ -26,7 +26,9 @@ class Item(Base):
         :return: экземпляр класса Item
         """
         session = Session()
-        return session.query(Item).get(id)
+        res =  session.query(Item).get(id)
+        session.close()
+        return res
 
 
     @staticmethod
@@ -37,5 +39,7 @@ class Item(Base):
         :return: экземпляр класса Item
         """
         session = Session()
-        return session.query(Item).filter_by(name=name).first()
+        res = session.query(Item).filter_by(name=name).first()
+        session.close()
+        return res
 
