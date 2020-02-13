@@ -55,7 +55,7 @@ class ItemRel(Base):
         self.quantity += n
 
     @staticmethod
-    def get_inventory(player):
+    def get_inventory(player, as_string=False):
         if isinstance(player, int):
             id = player
         elif isinstance(player, Player):
@@ -64,15 +64,14 @@ class ItemRel(Base):
             raise TypeError('player is not int nor class Player')
 
         session = Session()
-        return session.query(ItemRel.item, ItemRel.quantity).filter_by(player_id=id)
-
-    def __repr__(self):
-        res = f"Твой инвентарь:\n"
-        inv = ItemRel.get_inventory(self.player_id)
-        for item, quantity in inv:
-            res += str(item) + f" ({quantity})\n"
-        return res
-
+        inv = session.query(ItemRel.item, ItemRel.quantity).filter_by(player_id=id)
+        if not as_string:
+            return inv
+        else:
+            res = f"Твой инвентарь:\n"
+            for item, quantity in inv:
+                res += str(item) + f" ({quantity})\n"
+            return res
 
 
 class Item(Base):
