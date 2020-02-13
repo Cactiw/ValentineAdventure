@@ -36,13 +36,18 @@ class ItemRel(Base):
         session = Session()
         return session.query(ItemRel).filter_by(item_id=item_id, player_id=player_id).first()
 
-    def reduce_quantity(self, n=1):
+    def reduce_quantity(self, n=1, use=False):
         if self.quantity == n:
-            # TODO Удалить из таблицы
-            pass
+            if use:
+                self.item.use(times=n)
+            session = Session()
+            session.delete(self)
+            session.commit()
         elif self.quantity < n:
             raise ValueError('Not enough items!')
         else:
+            if use:
+                self.item.use(times=n)
             self.quantity -= n
 
 
@@ -59,7 +64,14 @@ class ItemRel(Base):
             raise TypeError('player is not int nor class Player')
 
         session = Session()
-        return session.query(ItemRel.item_id, ItemRel.quantity).filter_by(player_id=id)
+        return session.query(ItemRel.item, ItemRel.quantity).filter_by(player_id=id)
+
+    def __repr__(self):
+        res = f"Твой инвентарь:\n"
+        inv = ItemRel.get_inventory(self.player_id)
+        for item, quantity in inv:
+            res += str(item) + f" ({quantity})\n"
+        return res
 
 
 
@@ -71,5 +83,16 @@ class Item(Base):
     name = Column(VARCHAR, nullable=False, unique=True)
 
     item = relationship('ItemRel', backref=backref('item'))
+
+    def __repr__(self):
+        return f"- {self.name}"
+
+    def use(self, times=1):
+        pass
+
+    @staticmethod
+    def get(id: int):
+        session = Session()
+        return session.query(Item).get(id)
 
 
