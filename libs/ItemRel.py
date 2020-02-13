@@ -1,6 +1,9 @@
 from work_materials.globals import Base, Session
 from sqlalchemy import Column, INT, ForeignKey, PrimaryKeyConstraint
 
+# Необщодимый импорт, без него не работает
+from libs.Item import Item
+
 
 class ItemRel(Base):
 

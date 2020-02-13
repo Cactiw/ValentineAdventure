@@ -3,7 +3,7 @@ from telegram import ReplyKeyboardRemove
 from work_materials.globals import Session, game_classes
 
 from libs.Player import Player
-from libs.Item import ItemRel, Item
+from libs.ItemRel import ItemRel
 
 from bin.buttons import get_class_select_buttons
 
@@ -124,5 +124,4 @@ def inv(bot, update):
     res = f"Твой инвентарь:\n" if len(inv) > 0 else "Твой инвентарь пуст!"
     for item, quantity in inv:
         res += str(item) + f" ({quantity})\n"
-    return res
     bot.send_message(chat_id=update.message.chat_id, text=res)
