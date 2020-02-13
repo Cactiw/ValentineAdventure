@@ -4,6 +4,7 @@ from sqlalchemy.orm import relationship, backref, Session
 
 from libs.Quest import Quest
 from libs.ItemRel import ItemRel
+from libs.Item import Item
 
 from work_materials.globals import Base, dispatcher
 
@@ -99,9 +100,18 @@ class Player(Base):
 
     #
 
-    def add_item(self, item_id, session):
-        self.item_ids.append(item_id)
-        self.update(session)
+    def add_item(self, item, quantity=1):
+        if isinstance(item, int):
+            id = item
+        elif isinstance(item, Item):
+            id = item.id
+        else:
+            raise TypeError('item is not int nor class Item')
+        session = Session()
+        rel = ItemRel(item_id=id, player_id=self.id, quantity=quantity)
+        session.add(rel)
+        session.commit()
+        session.close()
 
 
     def get_inventory(self):
