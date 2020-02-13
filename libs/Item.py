@@ -1,41 +1,30 @@
 from work_materials.globals import Base
-from sqlalchemy import Table, Column, ForeignKey, INT, VARCHAR, BOOLEAN
-from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.orm import relationship, backref, Session
+from sqlalchemy import Column, INT, ForeignKey, UniqueConstraint, VARCHAR
+from sqlalchemy.orm import relationship, backref
 
 import logging
 
 
 class ItemRel(Base):
-    item_id = Column(INT, nullable=False)
-    player_id = Column(INT, nullable=False)
+
+    __tablename__ = "itemrel"
+
+    item_id = Column(INT, ForeignKey('items.id'), nullable=False)
+    player_id = Column(INT, ForeignKey('players.id'), nullable=False)
     quantity = Column(INT, default=1)
 
+    __table_args__ = (
+        UniqueConstraint('item_id', 'player_id', name='unique_record')
+    )
 
 
+class Item(Base):
 
-class Item:
-    items = {}
+    __tablename__ = "items"
 
-    def __init__(self, item_id: str, name: str):
-        self.id = item_id
-        self.name = name
+    id = Column(INT, nullable=False, autoincrement=True, primary_key=True)
+    name = Column(VARCHAR, nullable=False)
 
-    @staticmethod
-    def get_item(item_id: str):
-        return Item.items.get(item_id)
+    item = relationship('ItemRel', backref=backref('item'))
 
-    @staticmethod
-    def load_items():
-        """
-        Метод загрузки всех квестов из ресурсов, вызывается один раз при старте бота
-        :return: None
-        """
-        logging.info("Loading items...")
-
-        for item_id, data in list(items.items()):
-            data.update({"item_id": item_id})
-            Item.items.update({item_id: Item(**data)})
-
-        logging.info("Items loaded.")
 

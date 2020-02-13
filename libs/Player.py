@@ -1,4 +1,4 @@
-from sqlalchemy import Table, Column, ForeignKey, INT, VARCHAR, BOOLEAN
+from sqlalchemy import Column, ForeignKey, INT, VARCHAR, BOOLEAN
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship, backref, Session
 
@@ -25,6 +25,8 @@ class Player(Base):
 
     hp = Column(INT)
     max_hp = Column(INT)
+
+    player = relationship('ItemRel', backref=backref('player'))
 
     def set_game_class(self, new_class):
         self.game_class = new_class
