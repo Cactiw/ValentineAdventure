@@ -38,10 +38,10 @@ class Player(Base):
         session.add(self)
         session.commit()
 
-    def check_has_pair_selected(self):
+    def check_has_pair_selected(self, answer=None):
         if self.pair is None:
             raise RuntimeError
-        return self.pair.selected
+        return self.pair.selected and (answer is None or answer == self.pair.selected_variant)
 
     def get_active_quest(self) -> Quest:
         return Quest.get_quest(self.quest_id)
@@ -63,6 +63,7 @@ class Player(Base):
 
     def chose_variant(self, answer: str, session: Session):
         self.selected = True
+        self.selected_variant = answer
         self.update(session)
         quest = self.get_active_quest()
         current: {str: {}} = quest.answers.get(answer)
