@@ -87,7 +87,8 @@ def quest_variant_chosen(bot, update):
     mes = update.message
     session, player = get_session_and_player(update)
     if not player.verify_quest_answer(mes.text):
-        bot.send_message(chat_id=player.id, text="Ответ не распознан. Пожалуйста, используйте кнопки")
+        # bot.send_message(chat_id=player.id, text="Ответ не распознан. Пожалуйста, используйте кнопки")
+        player.send_current_quest_message()
         return
     player.chose_variant(mes.text, session)
 

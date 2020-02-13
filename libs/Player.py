@@ -71,7 +71,9 @@ class Player(Base):
             if path is not None:
                 # Действия на этой локации
                 progress = self.progress.get(path, 0)
+                print(progress)
                 self.progress.update({path: progress + current.get("add_progress", 1)})
+                print(progress)
                 dispatcher.bot.send_message(chat_id=self.id, text=current.get("first_text"), parse_mode='HTML',
                                             reply_markup=quest.get_buttons(progress=self.progress))
                 dispatcher.bot.send_message(chat_id=self.pair_id, text=current.get("second_text"), parse_mode='HTML',
@@ -84,6 +86,10 @@ class Player(Base):
         else:
             # Пара не выбрала
             dispatcher.bot.send_message(chat_id=self.id, text="Принято. Ожидай решение партнёра")
+
+    def send_current_quest_message(self):
+        dispatcher.bot.send_message(self.id, text=self.get_active_quest().get_enter_text(), parse_mode='HTML',
+                                    reply_markup=self.get_active_quest().get_buttons(self.progress))
 
 
     def progress_both_to_quest(self, quest_id, session: Session):

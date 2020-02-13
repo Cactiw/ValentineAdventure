@@ -1,7 +1,6 @@
 from work_materials.globals import Base, Session
 from sqlalchemy import Column, INT, ForeignKey, PrimaryKeyConstraint
 
-# Необщодимый импорт, без него не работает
 from libs.Item import Item
 
 
@@ -31,15 +30,14 @@ class ItemRel(Base):
         elif isinstance(player, Player):
             player_id = player.id
         else:
-            raise TypeError('player is not int nor class Player')
+            raise TypeError('Player is not int nor class Player')
 
-        from libs.Item import Item
         if isinstance(player, int):
             item_id = player
         elif isinstance(item, Item):
             item_id = player.id
         else:
-            raise TypeError('item is not int nor class Item')
+            raise TypeError('Item is not int nor class Item')
 
         session = Session()
         res = session.query(ItemRel).filter_by(item_id=item_id, player_id=player_id).first()

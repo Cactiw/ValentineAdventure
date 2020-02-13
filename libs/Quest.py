@@ -32,7 +32,7 @@ class Quest:
                 answers.append(text)
             elif curr_progress == progress.get(path, 0):
                 answers.append(text)
-        return ReplyKeyboardMarkup(build_buttons_menu(tuple(self.answers.keys()), 2), resize_keyboard=True)
+        return ReplyKeyboardMarkup(build_buttons_menu(tuple(answers), 2), resize_keyboard=True)
 
     def verify_quest_answer(self, answer):
         return answer in tuple(self.answers.keys())
