@@ -3,7 +3,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship, backref, Session
 
 from libs.Quest import Quest
-from libs.Item import ItemRel
+from libs.ItemRel import ItemRel
 
 from work_materials.globals import Base, dispatcher
 
@@ -97,14 +97,18 @@ class Player(Base):
     def finish_quest(self, selected):
         pass
 
-    def get_inventory(self):
-        return ItemRel.get_inventory(self)
-
     #
 
     def add_item(self, item_id, session):
         self.item_ids.append(item_id)
         self.update(session)
 
+
+    def get_inventory(self):
+        """
+        Получает инвентарь игрока
+        :return: Список из tuple (item: Item, quantity: int)
+        """
+        return ItemRel.get_inventory(self)
 
 
