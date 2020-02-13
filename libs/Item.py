@@ -55,7 +55,7 @@ class ItemRel(Base):
         self.quantity += n
 
     @staticmethod
-    def get_inventory(player, as_string=False):
+    def get_inventory(player, as_string: bool=False):
         if isinstance(player, int):
             id = player
         elif isinstance(player, Player):

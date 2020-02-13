@@ -2,7 +2,7 @@ from telegram.ext import MessageHandler, CommandHandler, Filters
 
 from work_materials.globals import Base, engine, dispatcher, updater
 
-from bin.game import start, text_entered
+from bin.game import start, text_entered, inv
 
 from libs.Quest import Quest
 from libs.Item import Item, ItemRel
@@ -13,6 +13,7 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 
 dispatcher.add_handler(CommandHandler('start', start))
+dispatcher.add_handler(CommandHandler('inv', inv))
 dispatcher.add_handler(MessageHandler(Filters.text, text_entered))
 
 #

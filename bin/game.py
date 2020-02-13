@@ -3,6 +3,7 @@
 from work_materials.globals import Session, game_classes
 
 from libs.Player import Player
+from libs.Item import ItemRel, Item
 
 from bin.buttons import get_class_select_buttons
 
@@ -114,3 +115,8 @@ def text_entered(bot, update):
     else:
         pass
         # unknown_response(bot, update)
+
+
+def inv(bot, update):
+    player_id = update.message.from_user.id
+    bot.send_message(chat_id=update.message.chat_id, text=ItemRel.get_inventory(player_id, as_string=True))
