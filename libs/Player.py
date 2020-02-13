@@ -101,6 +101,12 @@ class Player(Base):
     #
 
     def add_item(self, item, quantity=1):
+        """
+        Добавляет запись в таблицу itemrel
+        :param item: id предмена или экземпляр класса Item
+        :param quantity: количество предметов
+        :return: None
+        """
         if isinstance(item, int):
             id = item
         elif isinstance(item, Item):
