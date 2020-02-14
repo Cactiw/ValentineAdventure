@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, Session as SQLSession
 from sqlalchemy.ext.declarative import declarative_base
 
 from libs.bot_async_messaging import AsyncBot
@@ -12,6 +12,7 @@ engine = create_engine(f'postgresql+psycopg2://{psql_credentials["user"]}:{psql_
                        echo=False)
 
 Session = sessionmaker(bind=engine, autoflush=False)
+session: SQLSession = Session()
 Base = declarative_base()
 
 bot = AsyncBot(token=TOKEN, workers=16, request_kwargs=request_kwargs)

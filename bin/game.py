@@ -1,33 +1,40 @@
 from telegram import ReplyKeyboardRemove
 
-from work_materials.globals import Session, game_classes
+from work_materials.globals import session as session_globals, game_classes
 
 from libs.Player import Player
 from libs.ItemRel import ItemRel
+from libs.Battle import Battle
 
 from bin.buttons import get_class_select_buttons
+from bin.battle import process_battle_message
 
 
 def get_session_and_player(update):
-    session = Session()
+    session = session_globals
     player = session.query(Player).get(update.message.from_user.id)
     return [session, player]
 
 
 def start(bot, update):
     mes = update.message
-    session = Session()
-    cur_player = session.query(Player).get(mes.from_user.id)
+    session, cur_player = get_session_and_player(update)
     if cur_player is None:
         cur_player = Player(id=mes.from_user.id, username=mes.from_user.username, status="selecting_game_class")
 
-    else:
-        cur_player.status = "selecting_game_class"  # TODO поставить заглушку
+    elif cur_player.status == "death":
+        cur_player.status = "selecting_game_class"
+        cur_player.hp = cur_player.max_hp
+        ItemRel.drop_inventory(cur_player, session)
+
+        cur_player.pair.status = "selecting_game_class"
+        cur_player.pair.hp = cur_player.pair.max_hp
+        ItemRel.drop_inventory(cur_player.pair, session)
+
     session.add(cur_player)
     session.commit()
     bot.send_message(cur_player.id, text="Привет! Выбери класс, за который будешь играть!",
                      reply_markup=get_class_select_buttons())
-    session.close()
 
 
 
@@ -36,8 +43,7 @@ def class_selected(bot, update):
     if mes.text not in game_classes:
         bot.send_message(chat_id=mes.chat_id, text="Неверный синтаксис. Выберите один из перечисленных классов.")
         return
-    session = Session()
-    player: Player = session.query(Player).get(mes.from_user.id)
+    session, player = get_session_and_player(update)
     player.set_game_class(mes.text)
     player.status = "awaiting_pair_id"
     player.update(session)
@@ -55,8 +61,7 @@ def id_entered(bot, update):
     except ValueError:
         bot.send_message(chat_id=mes.chat_id, text="Неверный синтаксис. Введите число.")
         return
-    session = Session()
-    cur_player: Player = session.query(Player).get(mes.from_user.id)
+    session, cur_player = get_session_and_player(update)
     player: Player = session.query(Player).get(player_id)
     if player is None:
         bot.send_message(chat_id=mes.chat_id, text="Этот человек ещё не зарегистрирован.")
@@ -80,7 +85,6 @@ def id_entered(bot, update):
                                                                                cur_player.id), parse_mode='HTML')
     player.update(session)
     cur_player.update(session)
-    session.close()
 
 
 def quest_variant_chosen(bot, update):
@@ -112,8 +116,8 @@ def text_entered(bot, update):
         return id_entered(bot, update)
     elif player.status == "quest":
         quest_variant_chosen(bot, update)
-
-
+    elif player.status == "battle":
+        process_battle_message(bot, update, player, session)
     else:
         pass
         # unknown_response(bot, update)

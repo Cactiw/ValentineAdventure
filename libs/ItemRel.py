@@ -96,3 +96,15 @@ class ItemRel(Base):
         inv = [(i.item, i.quantity) for i in query]
         session.close()
         return inv
+
+    @staticmethod
+    def drop_inventory(player, session):
+        from libs.Player import Player
+        if isinstance(player, int):
+            id = player
+        elif isinstance(player, Player):
+            id = player.id
+        else:
+            raise TypeError('player is not int nor class Player')
+
+        query = session.query(ItemRel).filter_by(player_id=id).delete()
