@@ -1,12 +1,12 @@
 from telegram import ReplyKeyboardRemove
 
-from work_materials.globals import session as session_globals, game_classes, SUPER_ADMIN_ID
+from work_materials.globals import session as session_globals, game_classes, sex_selected, SUPER_ADMIN_ID
 
 from libs.Player import Player
 from libs.ItemRel import ItemRel
 from libs.Battle import Battle
 
-from bin.buttons import get_class_select_buttons
+from bin.buttons import get_class_select_buttons, get_sex_select_buttons
 from bin.battle import process_battle_message
 
 import re
@@ -22,21 +22,21 @@ def start(bot, update):
     mes = update.message
     session, cur_player = get_session_and_player(update)
     if cur_player is None:
-        cur_player = Player(id=mes.from_user.id, username=mes.from_user.username, status="selecting_game_class")
+        cur_player = Player(id=mes.from_user.id, username=mes.from_user.username, status="selecting_sex")
 
     elif cur_player.status == "death" or mes.from_user.id == SUPER_ADMIN_ID:
-        cur_player.status = "selecting_game_class"
+        cur_player.status = "selecting_sex"
         cur_player.hp = cur_player.max_hp
         ItemRel.drop_inventory(cur_player, session)
 
-        cur_player.pair.status = "selecting_game_class"
+        cur_player.pair.status = "selecting_sex"
         cur_player.pair.hp = cur_player.pair.max_hp
         ItemRel.drop_inventory(cur_player.pair, session)
 
     session.add(cur_player)
     session.commit()
-    bot.send_message(cur_player.id, text="Привет! Выбери класс, за который будешь играть!",
-                     reply_markup=get_class_select_buttons())
+    bot.send_message(cur_player.id, text="Привет! Для начала определимся, кто ты?",
+                     reply_markup=get_sex_select_buttons())
 
 
 
@@ -56,6 +56,19 @@ def class_selected(bot, update):
                      reply_markup=ReplyKeyboardRemove(),
                      parse_mode='HTML')
 
+
+def select_sex(bot, update):
+    mes = update.message
+    if mes.text not in sex_selected:
+        bot.send_message(chat_id=mes.chat_id, text="Неверный синтаксис. Выберите один из перечисленных полов.")
+        return
+    session, player = get_session_and_player(update)
+    player.set_game_class(mes.text)
+    player.status = "selecting_game_class"
+    player.sex = sex_selected.index(mes.text)
+    player.update(session)
+    bot.send_message(player.id, text="значит ты {}, я запомню... А теперь выбери какого ты класса".format(mes.text),
+                     reply_markup=get_class_select_buttons())
 
 def id_entered(bot, update):
     mes = update.message
@@ -112,6 +125,8 @@ def text_entered(bot, update):
     if player is None:
         bot.send_message(chat_id=mes.chat_id, text="Вы не зарегистрированы. Нажмите /start")
         return
+    if player.status == 'selecting_sex':
+        return select_sex(bot, update)
     if player.status == "selecting_game_class":
         return class_selected(bot, update)
     elif player.status == "awaiting_pair_id":
