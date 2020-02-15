@@ -10,6 +10,7 @@ from bin.buttons import get_class_select_buttons
 from bin.battle import process_battle_message
 
 import re
+from uuid import uuid4
 
 def get_session_and_player(update):
     session = session_globals
@@ -47,6 +48,7 @@ def class_selected(bot, update):
     session, player = get_session_and_player(update)
     player.set_game_class(mes.text)
     player.status = "awaiting_pair_id"
+    player.link= ''.join([el for el in str(uuid4()) if el !='-'])
     player.update(session)
     bot.send_message(chat_id=update.message.chat_id,
                      text="Хорошо, <b>{}</b>! Пришли мне это же сообщение своей половинки или следующую ссылку:\n"
@@ -64,7 +66,7 @@ def id_entered(bot, update):
     session, cur_player = get_session_and_player(update)
     player: Player = session.query(Player).filter_by(link=pair_link.group(1)).first()
     if player is None:
-        bot.send_message(chat_id=mes.chat_id, text="Этот человек ещё не зарегистрирован.")
+        bot.send_message(chat_id=mes.chat_id, text="никого по такой ссылке не существует")
         return
     if cur_player.pair_id is not None and cur_player.progress:
         bot.send_message(chat_id=mes.chat_id, text="У вас уже выбрана пара.")

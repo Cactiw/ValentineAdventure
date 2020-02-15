@@ -21,7 +21,7 @@ class Player(Base):
     id = Column(INT, primary_key=True)
     username = Column(VARCHAR)
     game_class = Column(VARCHAR)
-    link = Column(VARCHAR, default=''.join([el for el in str(uuid4()) if el !='-']))
+    link = Column(VARCHAR)
 
     pair_id = Column(INT, ForeignKey('players.id'))
     pair = relationship("Player", uselist=False, backref=backref('parent', remote_side=[id]))
