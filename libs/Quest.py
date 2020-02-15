@@ -2,6 +2,7 @@
 from resources.quests import quests
 
 from bin.buttons import build_buttons_menu
+from bin.service_functions import apply_genders
 
 from telegram import ReplyKeyboardMarkup
 
@@ -21,8 +22,8 @@ class Quest:
     def start(self, player):
         pass
 
-    def get_enter_text(self):
-        return self.enter_text
+    def get_enter_text(self, player):
+        return apply_genders(self.enter_text, player.sex, player.pair.sex)
 
     def get_buttons(self, progress={}):
         answers = []

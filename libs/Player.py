@@ -120,7 +120,7 @@ class Player(Base):
 
         quest = self.get_active_quest()
         quest.start(self)
-        dispatcher.bot.send_message(chat_id=self.id, text=quest.get_enter_text(), parse_mode='HTML',
+        dispatcher.bot.send_message(chat_id=self.id, text=quest.get_enter_text(self), parse_mode='HTML',
                                     reply_markup=quest.get_buttons())
         self.update(session)
 
@@ -161,7 +161,7 @@ class Player(Base):
             dispatcher.bot.send_message(chat_id=self.id, text="Принято. Ожидай решение партнёра")
 
     def send_current_quest_message(self):
-        dispatcher.bot.send_message(self.id, text=self.get_active_quest().get_enter_text(), parse_mode='HTML',
+        dispatcher.bot.send_message(self.id, text=self.get_active_quest().get_enter_text(self), parse_mode='HTML',
                                     reply_markup=self.get_active_quest().get_buttons(self.progress))
 
 
