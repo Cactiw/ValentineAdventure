@@ -16,7 +16,6 @@ from work_materials.globals import Base, dispatcher
 
 import logging
 import traceback
-from uuid import uuid4
 import copy
 
 
@@ -48,8 +47,21 @@ class Player(Base):
 
     player = relationship('ItemRel', backref='player', lazy='subquery')
 
+    def __init__(self, **kwargs):
+        # super(Base, self).__init__(**kwargs)
+        self.id = kwargs.get("id")
+        self.username = kwargs.get("username")
+        self.status = kwargs.get("status")
+
+        self.skills = {}
+        self.buffs = []
+
+        self.fill_skills()
+
+        pass
+
     @reconstructor
-    def __init__(self):
+    def init_on_load(self):
         self.skills = {}
         self.buffs = []
 

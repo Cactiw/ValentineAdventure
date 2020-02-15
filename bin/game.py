@@ -1,6 +1,6 @@
 from telegram import ReplyKeyboardRemove
 
-from work_materials.globals import session as session_globals, game_classes, sex_selected, SUPER_ADMIN_ID
+from work_materials.globals import session as session_globals, game_classes, genders, SUPER_ADMIN_ID
 
 from libs.Player import Player
 from libs.ItemRel import ItemRel
@@ -11,6 +11,7 @@ from bin.battle import process_battle_message
 
 import re
 from uuid import uuid4
+
 
 def get_session_and_player(update):
     session = session_globals
@@ -35,7 +36,7 @@ def start(bot, update):
 
     session.add(cur_player)
     session.commit()
-    bot.send_message(cur_player.id, text="Привет! Для начала определимся, кто ты?",
+    bot.send_message(chat_id=cur_player.id, text="Привет! Для начала определимся, кто ты?",
                      reply_markup=get_sex_select_buttons())
 
 
@@ -59,15 +60,15 @@ def class_selected(bot, update):
 
 def select_sex(bot, update):
     mes = update.message
-    if mes.text not in sex_selected:
+    if mes.text not in genders:
         bot.send_message(chat_id=mes.chat_id, text="Неверный синтаксис. Выберите один из перечисленных полов.")
         return
     session, player = get_session_and_player(update)
     player.set_game_class(mes.text)
     player.status = "selecting_game_class"
-    player.sex = sex_selected.index(mes.text)
+    player.sex = genders.index(mes.text)
     player.update(session)
-    bot.send_message(player.id, text="значит ты {}, я запомню... А теперь выбери какого ты класса".format(mes.text),
+    bot.send_message(player.id, text="Значит ты {}, я запомню...\nА теперь выбери какого ты класса".format(mes.text),
                      reply_markup=get_class_select_buttons())
 
 def id_entered(bot, update):
