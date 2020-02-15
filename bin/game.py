@@ -1,6 +1,6 @@
 from telegram import ReplyKeyboardRemove
 
-from work_materials.globals import session as session_globals, game_classes, sex_selected
+from work_materials.globals import session as session_globals, game_classes, sex_selected, SUPER_ADMIN_ID
 
 from libs.Player import Player
 from libs.ItemRel import ItemRel
@@ -24,7 +24,7 @@ def start(bot, update):
     if cur_player is None:
         cur_player = Player(id=mes.from_user.id, username=mes.from_user.username, status="selecting_sex")
 
-    elif cur_player.status == "death":
+    elif cur_player.status == "death" or mes.from_user.id == SUPER_ADMIN_ID:
         cur_player.status = "selecting_sex"
         cur_player.hp = cur_player.max_hp
         ItemRel.drop_inventory(cur_player, session)
@@ -133,7 +133,7 @@ def text_entered(bot, update):
         return id_entered(bot, update)
     elif player.status == "quest":
         quest_variant_chosen(bot, update)
-    elif player.status == "battle":
+    elif player.status.startswith("battle"):
         process_battle_message(bot, update, player, session)
     else:
         pass

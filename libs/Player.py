@@ -1,6 +1,6 @@
 from sqlalchemy import Column, ForeignKey, INT, VARCHAR, BOOLEAN
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.orm import relationship, backref, Session
+from sqlalchemy.orm import relationship, backref, Session, reconstructor
 from sqlalchemy.orm.attributes import flag_modified
 
 from telegram import ReplyKeyboardMarkup
@@ -9,12 +9,16 @@ from libs.Quest import Quest
 from libs.ItemRel import ItemRel
 from libs.Item import Item
 from libs.Enemy import Enemy
+from libs.Buff import Buff
+from libs.Skill import Skill, skills
 
 from work_materials.globals import Base, dispatcher
 
 import logging
 import traceback
 from uuid import uuid4
+import copy
+
 
 class Player(Base):
     __tablename__ = "players"
@@ -43,6 +47,47 @@ class Player(Base):
     alive = Column(BOOLEAN, default=True)
 
     player = relationship('ItemRel', backref='player', lazy='subquery')
+
+    @reconstructor
+    def __init__(self):
+        self.skills = {}
+        self.buffs = []
+
+        self.fill_skills()
+
+    def fill_skills(self):
+        for skill in skills:
+            if skill.game_class == "All" or skill.game_class == self.game_class:
+                cur_skill = copy.deepcopy(skill)
+                self.skills.update({cur_skill.name: cur_skill})
+                cur_skill.set_player(self)
+
+    def get_skill(self, name: str):
+        return self.skills.get(name)
+
+    def add_buff(self, buff: Buff):
+        value = getattr(self, buff.stat)
+        if value is None:
+            raise RuntimeError
+        if buff.percents:
+            buff.value = value * buff.value / 100
+        value += buff.value
+
+        setattr(self, buff.stat, value)
+        self.buffs.append(buff)
+
+    def remove_buff(self, buff: Buff):
+        value = getattr(self, buff.stat)
+        if value is None:
+            raise RuntimeError
+        value -= buff.value
+        setattr(self, buff.stat, value)
+        self.buffs.remove(buff)
+
+    def reduce_buffs(self):
+        for buff in self.buffs:
+            if not buff.reduce_duration().check_active():
+                self.remove_buff(buff)
 
     def set_game_class(self, new_class):
         self.game_class = new_class
@@ -140,7 +185,7 @@ class Player(Base):
         self.status = "battle"
         self.selected = False
         self.battle_id = battle.id
-        self.battle_status = None
+        self.battle_status = "choose_skill"
 
         self.update(session)
 
@@ -151,17 +196,25 @@ class Player(Base):
         self.set_battle(battle, session)
         self.pair.set_battle(battle, session)
 
-    def select_battle_action(self, battle, action_type, target_id, session):
-        self.selected = True
+    def select_battle_action(self, battle, action_type, session):
         self.battle_action = action_type
-        self.battle_target = target_id
+        self.battle_status = "choose_target"
+        self.update(session)
 
+    def battle_new_round(self):
+        self.selected = False
+        self.battle_status = "choose_skill"
+
+    def select_battle_target(self, battle, target_id, session):
+        self.selected = True
+        self.battle_target = target_id
 
         if self.check_has_pair_selected(None):
             battle.tick(session)
 
-            self.selected = False
-            self.pair.selected = False
+            self.battle_new_round()
+            self.pair.battle_new_round()
+
         self.update(session)
         self.pair.update(session)
 
