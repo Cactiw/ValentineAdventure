@@ -42,7 +42,6 @@ quests = {
                             "hp": 15,
                             "max_hp": 15,
                             "attack": 2,
-                            "skills": {},
 
                         }
                     }

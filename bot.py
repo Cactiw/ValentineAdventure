@@ -1,6 +1,6 @@
 from telegram.ext import MessageHandler, CommandHandler, Filters
 
-from work_materials.globals import Base, engine, dispatcher, updater
+from work_materials.globals import Base, engine, dispatcher, updater, session
 
 from bin.game import start, text_entered, inv
 
@@ -24,3 +24,4 @@ logging.info("Starting pooling")
 updater.start_polling(clean=False)
 updater.idle()
 
+session.close_all()
