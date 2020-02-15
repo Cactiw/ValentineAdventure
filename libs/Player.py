@@ -14,13 +14,14 @@ from work_materials.globals import Base, dispatcher
 
 import logging
 import traceback
-
+from uuid import uuid4
 
 class Player(Base):
     __tablename__ = "players"
     id = Column(INT, primary_key=True)
     username = Column(VARCHAR)
     game_class = Column(VARCHAR)
+    link = Column(VARCHAR, default=''.join([el for el in str(uuid4()) if el !='-']))
 
     pair_id = Column(INT, ForeignKey('players.id'))
     pair = relationship("Player", uselist=False, backref=backref('parent', remote_side=[id]))

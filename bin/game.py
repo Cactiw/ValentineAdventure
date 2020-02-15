@@ -9,6 +9,7 @@ from libs.Battle import Battle
 from bin.buttons import get_class_select_buttons
 from bin.battle import process_battle_message
 
+import re
 
 def get_session_and_player(update):
     session = session_globals
@@ -48,21 +49,20 @@ def class_selected(bot, update):
     player.status = "awaiting_pair_id"
     player.update(session)
     bot.send_message(chat_id=update.message.chat_id,
-                     text="Хорошо, <b>{}</b>! Пришли мне id своей половинки!\n"
-                          "Твой id: <code>{}</code>".format(player.game_class, update.message.from_user.id),
+                     text="Хорошо, <b>{}</b>! Пришли мне это же сообщение своей половинки или следующую ссылку:\n"
+                          "<code>/join_{}</code>".format(player.game_class,player.link),
                      reply_markup=ReplyKeyboardRemove(),
                      parse_mode='HTML')
 
 
 def id_entered(bot, update):
     mes = update.message
-    try:
-        player_id = int(mes.text)
-    except ValueError:
-        bot.send_message(chat_id=mes.chat_id, text="Неверный синтаксис. Введите число.")
+    pair_link = re.search('/join_(.*)', mes.text)
+    if not pair_link:
+        bot.send_message(chat_id=mes.chat_id, text="Неверный синтаксис. Пришли похожую на ту что выше команду от половинки.")
         return
     session, cur_player = get_session_and_player(update)
-    player: Player = session.query(Player).get(player_id)
+    player: Player = session.query(Player).filter_by(link=pair_link.group(1)).first()
     if player is None:
         bot.send_message(chat_id=mes.chat_id, text="Этот человек ещё не зарегистрирован.")
         return
@@ -80,9 +80,9 @@ def id_entered(bot, update):
         # Начало игры
     else:
         bot.send_message(chat_id=mes.chat_id, text="Хорошо. Теперь Ваша половинка должна также выбрать вас.")
-        bot.send_message(chat_id=player.id, text="@{} хочет сыграть с вами! Для согласия выберите его:\n"
-                                                   "id: <code>{}</code>".format(cur_player.username,
-                                                                               cur_player.id), parse_mode='HTML')
+        bot.send_message(chat_id=player.id, text="@{} хочет сыграть с вами! Для согласия нажмите на эту команду:\n"
+                                                   "/join_{}".format(cur_player.username,
+                                                                               cur_player.link), parse_mode='HTML')
     player.update(session)
     cur_player.update(session)
 
