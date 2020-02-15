@@ -22,7 +22,7 @@ class Player(Base):
     username = Column(VARCHAR)
     game_class = Column(VARCHAR)
     link = Column(VARCHAR)
-
+    sex = Column(INT)
     pair_id = Column(INT, ForeignKey('players.id'))
     pair = relationship("Player", uselist=False, backref=backref('parent', remote_side=[id]))
 

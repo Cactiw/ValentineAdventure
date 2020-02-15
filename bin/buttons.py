@@ -16,6 +16,16 @@ class_select_buttons = [
     # ]
 ]
 
+sex_select_buttons = [
+    [
+        KeyboardButton("👨 Парень"),
+        KeyboardButton("👩 Девушка")
+    ]
+]
+
+def get_sex_select_buttons():
+    return ReplyKeyboardMarkup(sex_select_buttons, resize_keyboard=True)
+
 
 def get_class_select_buttons():
     return ReplyKeyboardMarkup(class_select_buttons, resize_keyboard=True)
