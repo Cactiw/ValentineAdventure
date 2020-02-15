@@ -14,6 +14,8 @@ class Enemy:
         self.battle_id = -1
         self.alive = True
 
+        self.buffs = []
+
     def get_attack_damage(self):
         return self.attack
 

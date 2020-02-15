@@ -1,6 +1,6 @@
 from sqlalchemy import Column, ForeignKey, INT, VARCHAR, BOOLEAN
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.orm import relationship, backref, Session
+from sqlalchemy.orm import relationship, backref, Session, reconstructor
 from sqlalchemy.orm.attributes import flag_modified
 
 from telegram import ReplyKeyboardMarkup
@@ -9,6 +9,8 @@ from libs.Quest import Quest
 from libs.ItemRel import ItemRel
 from libs.Item import Item
 from libs.Enemy import Enemy
+from libs.Buff import Buff
+from libs.Skill import Skill, skills
 
 from work_materials.globals import Base, dispatcher
 
@@ -42,6 +44,42 @@ class Player(Base):
     alive = Column(BOOLEAN, default=True)
 
     player = relationship('ItemRel', backref='player', lazy='subquery')
+
+    @reconstructor
+    def __init__(self):
+        self.skills = []
+        self.buffs = []
+
+        self.fill_skills()
+
+    def fill_skills(self):
+        for skill in skills:
+            if skill.game_class == self.game_class:
+                self.skills.append(skill)
+
+    def add_buff(self, buff: Buff):
+        value = getattr(self, buff.stat)
+        if value is None:
+            raise RuntimeError
+        if buff.percents:
+            buff.value = value * buff.value / 100
+        value += buff.value
+
+        setattr(self, buff.stat, value)
+        self.buffs.append(buff)
+
+    def remove_buff(self, buff: Buff):
+        value = getattr(self, buff.stat)
+        if value is None:
+            raise RuntimeError
+        value -= buff.value
+        setattr(self, buff.stat, value)
+        self.buffs.remove(buff)
+
+    def reduce_buffs(self):
+        for buff in self.buffs:
+            if not buff.reduce_duration().check_active():
+                self.remove_buff(buff)
 
     def set_game_class(self, new_class):
         self.game_class = new_class
