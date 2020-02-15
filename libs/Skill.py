@@ -31,10 +31,16 @@ class Skill:
         raise NotImplemented
 
 
+class Attack(Skill):
+    def use(self, target, session):
+        dealt_damage = target.reduce_hp(self.player.get_attack_damage(), session)
+        return "{} ⚔️атаковал {} (-{}🌡️)\n".format(self.player.username, target.username, dealt_damage)
+
+
 class CriticalHit(Skill):
     DAMAGE_MULTIPLIER = 2
 
-    def use(self, target):
+    def use(self, target, session):
         dealt_damage = target.reduce_hp(self.player.get_attack_damage() * CriticalHit.DAMAGE_MULTIPLIER)
         return "{} {} {} (-{}🌡️)\n".format(self.player.username, self.name, target.username, dealt_damage)
 
@@ -42,10 +48,14 @@ class CriticalHit(Skill):
 class BattleCry(Skill):
     DAMAGE_MULTIPLIER = 1.5
 
-    def use(self, target):
+    def use(self, target, session):
         target.add_buff(Buff("Battle Cry", "attack", 60, percents=True, duration=3))
         return "{} {} {} \n".format(self.player.username, self.name, target.username)
 
 
-skills = [CriticalHit("CriticalHit", 2, "⚔Рыцарь"), BattleCry("BattleCry", 2, "⚔Рыцарь")]
+skills = [
+    Attack("⚔️Атака", 0, "All"),
+    CriticalHit("CriticalHit", 2, "⚔Рыцарь"), BattleCry("BattleCry", 2, "⚔Рыцарь")
+
+]
 

@@ -16,6 +16,7 @@ from work_materials.globals import Base, dispatcher
 
 import logging
 import traceback
+import copy
 
 
 class Player(Base):
@@ -47,15 +48,20 @@ class Player(Base):
 
     @reconstructor
     def __init__(self):
-        self.skills = []
+        self.skills = {}
         self.buffs = []
 
         self.fill_skills()
 
     def fill_skills(self):
         for skill in skills:
-            if skill.game_class == self.game_class:
-                self.skills.append(skill)
+            if skill.game_class == "All" or skill.game_class == self.game_class:
+                cur_skill = copy.deepcopy(skill)
+                self.skills.update({cur_skill.name: cur_skill})
+                cur_skill.set_player(self)
+
+    def get_skill(self, name: str):
+        return self.skills.get(name)
 
     def add_buff(self, buff: Buff):
         value = getattr(self, buff.stat)
@@ -177,7 +183,7 @@ class Player(Base):
         self.status = "battle"
         self.selected = False
         self.battle_id = battle.id
-        self.battle_status = None
+        self.battle_status = "choose_skill"
 
         self.update(session)
 
@@ -188,17 +194,25 @@ class Player(Base):
         self.set_battle(battle, session)
         self.pair.set_battle(battle, session)
 
-    def select_battle_action(self, battle, action_type, target_id, session):
-        self.selected = True
+    def select_battle_action(self, battle, action_type, session):
         self.battle_action = action_type
-        self.battle_target = target_id
+        self.battle_status = "choose_target"
+        self.update(session)
 
+    def battle_new_round(self):
+        self.selected = False
+        self.battle_status = "choose_skill"
+
+    def select_battle_target(self, battle, target_id, session):
+        self.selected = True
+        self.battle_target = target_id
 
         if self.check_has_pair_selected(None):
             battle.tick(session)
 
-            self.selected = False
-            self.pair.selected = False
+            self.battle_new_round()
+            self.pair.battle_new_round()
+
         self.update(session)
         self.pair.update(session)
 
