@@ -13,7 +13,7 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 dispatcher.add_handler(CommandHandler('start', start))
 dispatcher.add_handler(CommandHandler('inv', inv))
-dispatcher.add_handler(MessageHandler(Filters.text, text_entered))
+dispatcher.add_handler(MessageHandler(Filters.text | Filters.command, text_entered))
 
 #
 
